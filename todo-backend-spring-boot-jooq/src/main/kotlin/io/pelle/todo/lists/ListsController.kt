@@ -6,10 +6,13 @@ import io.pelle.todo.lists.model.TodoListItemResponse
 import io.pelle.todo.lists.model.TodoListItemUpdateRequest
 import io.pelle.todo.lists.model.TodoListResponse
 import io.pelle.todo.user.TodoUser
+import io.swagger.v3.oas.annotations.Parameter
+import io.swagger.v3.oas.annotations.tags.Tag
 import org.jooq.DSLContext
 import org.jooq.generated.Tables.LISTS
 import org.jooq.generated.Tables.LISTS_ITEMS
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.DeleteMapping
@@ -24,11 +27,12 @@ import org.springframework.web.bind.annotation.RestController
 import java.util.UUID
 
 @RestController
-@RequestMapping("/lists")
+@RequestMapping("/api/v1/lists", consumes = [MediaType.APPLICATION_JSON_VALUE], produces = [MediaType.APPLICATION_JSON_VALUE])
+@Tag(name = "Lists", description = "Todo Lists API")
 class ListsController(val dsl: DSLContext) {
 
     @GetMapping
-    fun list(authentication: Authentication): List<TodoListResponse> {
+    fun list(@Parameter(hidden = true) authentication: Authentication): List<TodoListResponse> {
         return dsl.selectFrom(LISTS).where(LISTS.USER_ID.eq(ensureUserId(authentication))).fetch().map { TodoListResponse(it.id, it.name, null) }
     }
 
@@ -36,7 +40,7 @@ class ListsController(val dsl: DSLContext) {
     fun create(
         @RequestBody request: TodoListCreateRequest,
         @RequestHeader("Authorization") auth: String,
-        authentication: Authentication
+        @Parameter(hidden = true) authentication: Authentication
     ): ResponseEntity<TodoListResponse> {
         val id = UUID.randomUUID()
 
@@ -50,7 +54,7 @@ class ListsController(val dsl: DSLContext) {
     }
 
     @DeleteMapping("/{id}")
-    fun delete(@PathVariable id: UUID, authentication: Authentication): ResponseEntity<Void> {
+    fun delete(@PathVariable id: UUID, @Parameter(hidden = true) authentication: Authentication): ResponseEntity<Void> {
         checkExistenceAndAccess<Void>(id, authentication)?.let { return it }
 
         dsl.deleteFrom(LISTS).where(LISTS.ID.eq(id).and(LISTS.USER_ID.eq(ensureUserId(authentication)))).execute()
@@ -58,7 +62,7 @@ class ListsController(val dsl: DSLContext) {
     }
 
     @GetMapping("/{id}")
-    fun get(@PathVariable id: UUID, authentication: Authentication): ResponseEntity<TodoListResponse> {
+    fun get(@PathVariable id: UUID, @Parameter(hidden = true) authentication: Authentication): ResponseEntity<TodoListResponse> {
         checkExistenceAndAccess<TodoListResponse>(id, authentication)?.let { return it }
 
         return listResponseWithStatus(id, authentication, HttpStatus.OK)
@@ -68,7 +72,7 @@ class ListsController(val dsl: DSLContext) {
     fun createItem(
         @PathVariable id: UUID,
         @RequestBody request: TodoListItemCreateRequest,
-        authentication: Authentication
+        @Parameter(hidden = true) authentication: Authentication
     ): ResponseEntity<TodoListResponse> {
         checkExistenceAndAccess<TodoListResponse>(id, authentication)?.let { return it }
 
@@ -85,7 +89,7 @@ class ListsController(val dsl: DSLContext) {
     fun deleteItem(
         @PathVariable listId: UUID,
         @PathVariable itemId: UUID,
-        authentication: Authentication
+        @Parameter(hidden = true) authentication: Authentication
     ): ResponseEntity<TodoListResponse> {
 
         dsl.deleteFrom(LISTS_ITEMS).where(LISTS_ITEMS.ID.eq(itemId)).execute()
@@ -98,7 +102,7 @@ class ListsController(val dsl: DSLContext) {
         @PathVariable listId: UUID,
         @PathVariable itemId: UUID,
         @RequestBody request: TodoListItemUpdateRequest,
-        authentication: Authentication
+        @Parameter(hidden = true) authentication: Authentication
     ): ResponseEntity<TodoListResponse> {
 
         checkExistenceAndAccess<TodoListResponse>(listId, authentication)?.let { return it }

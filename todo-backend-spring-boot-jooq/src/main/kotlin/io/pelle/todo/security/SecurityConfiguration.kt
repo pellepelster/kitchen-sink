@@ -27,7 +27,10 @@ internal class SecurityConfiguration(val provider: TokenAuthenticationProvider?)
 
     companion object {
         private val PUBLIC_URLS: RequestMatcher = OrRequestMatcher(
-            AntPathRequestMatcher("/users/public/**"), AntPathRequestMatcher("/actuator/**")
+                AntPathRequestMatcher("/api/v1/users/public/**"),
+                AntPathRequestMatcher("/api-docs/**"),
+                AntPathRequestMatcher("/swagger-ui.html"),
+                AntPathRequestMatcher("/swagger-ui/**")
         )
 
         private val PROTECTED_URLS: RequestMatcher = NegatedRequestMatcher(PUBLIC_URLS)
@@ -43,22 +46,22 @@ internal class SecurityConfiguration(val provider: TokenAuthenticationProvider?)
 
     override fun configure(http: HttpSecurity) {
         http
-            .sessionManagement()
-            .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            .and()
-            .exceptionHandling()
-            .defaultAuthenticationEntryPointFor(forbiddenEntryPoint(), PROTECTED_URLS)
-            .and()
-            .authenticationProvider(provider)
-            .addFilterBefore(restAuthenticationFilter(), AnonymousAuthenticationFilter::class.java)
-            .authorizeRequests()
-            .requestMatchers(PROTECTED_URLS)
-            .authenticated()
-            .and()
-            .csrf().disable()
-            .formLogin().disable()
-            .httpBasic().disable()
-            .logout().disable()
+                .sessionManagement()
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                .and()
+                .exceptionHandling()
+                .defaultAuthenticationEntryPointFor(forbiddenEntryPoint(), PROTECTED_URLS)
+                .and()
+                .authenticationProvider(provider)
+                .addFilterBefore(restAuthenticationFilter(), AnonymousAuthenticationFilter::class.java)
+                .authorizeRequests()
+                .requestMatchers(PROTECTED_URLS)
+                .authenticated()
+                .and()
+                .csrf().disable()
+                .formLogin().disable()
+                .httpBasic().disable()
+                .logout().disable()
     }
 
     @Bean

@@ -103,6 +103,11 @@ dependencies {
     implementation 'org.liquibase:liquibase-core:4.2.2'
     implementation 'com.h2database:h2:1.4.200'
 
+    implementation 'io.swagger.core.v3:swagger-annotations:2.1.7'
+    implementation 'org.springdoc:springdoc-openapi:1.5.2'
+    implementation 'org.springdoc:springdoc-openapi-kotlin:1.5.5'
+    implementation 'org.springdoc:springdoc-openapi-ui:1.5.2'
+
     implementation 'org.apache.commons:commons-lang3:3.11'
     implementation 'io.github.microutils:kotlin-logging:1.7.9'
     implementation "com.fasterxml.jackson.module:jackson-module-kotlin:2.12.+"
