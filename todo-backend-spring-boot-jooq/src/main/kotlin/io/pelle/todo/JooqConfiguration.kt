@@ -3,17 +3,13 @@ package io.pelle.todo
 import org.jooq.impl.DataSourceConnectionProvider
 import org.jooq.impl.DefaultConfiguration
 import org.jooq.impl.DefaultDSLContext
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.jdbc.datasource.TransactionAwareDataSourceProxy
 import javax.sql.DataSource
 
 @Configuration
-class JooqConfiguration {
-
-    @Autowired
-    private val dataSource: DataSource? = null
+class JooqConfiguration(val dataSource: DataSource) {
 
     @Bean
     fun connectionProvider(): DataSourceConnectionProvider? {
