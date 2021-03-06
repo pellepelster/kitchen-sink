@@ -1,7 +1,6 @@
-package io.pelle.kafkaplayground
+package io.pelle.todo
 
 import com.jayway.jsonpath.JsonPath
-import io.pelle.todo.TodoApplication
 import org.hamcrest.core.Is.`is`
 import org.junit.jupiter.api.Test
 import org.junit.runner.RunWith

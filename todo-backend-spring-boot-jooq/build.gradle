@@ -99,23 +99,18 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.cloud:spring-cloud-starter-aws:+'
 
-    implementation 'org.jooq:jooq-codegen:3.14.8'
-
     implementation 'software.amazon.awssdk:cloudwatch:2.15.81'
     implementation 'software.amazon.awssdk:cloudwatch-metric-publisher:2.15.81'
-
     implementation 'io.micrometer:micrometer-registry-cloudwatch2:1.6.3'
 
-    implementation "com.fasterxml.jackson.module:jackson-module-kotlin:2.12.+"
-
+    implementation 'org.jooq:jooq-codegen:3.14.8'
     implementation 'org.postgresql:postgresql:42.2.18'
+    implementation 'org.liquibase:liquibase-core:4.2.2'
+    implementation 'com.h2database:h2:1.4.200'
 
     implementation 'org.apache.commons:commons-lang3:3.11'
-
     implementation 'io.github.microutils:kotlin-logging:1.7.9'
-    implementation 'org.liquibase:liquibase-core:4.2.2'
-
-    implementation 'com.h2database:h2:1.4.200'
+    implementation "com.fasterxml.jackson.module:jackson-module-kotlin:2.12.+"
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'junit:junit:4.13.1'
