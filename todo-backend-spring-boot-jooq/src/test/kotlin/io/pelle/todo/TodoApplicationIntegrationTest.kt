@@ -39,14 +39,14 @@ class TodoApplicationIntegrationTest {
         val password = UUID.randomUUID().toString()
 
         mvc.perform(
-            post("/users/public/register")
+            post("/api/v1/users/public/register")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""{ "email": "$user", "password": "$password" }""")
         )
             .andExpect(status().`is`(204))
 
         mvc.perform(
-            post("/users/public/login")
+            post("/api/v1/users/public/login")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""{ "email": "$user", "password": "$password" }""")
         )
@@ -57,7 +57,7 @@ class TodoApplicationIntegrationTest {
     public fun testInvalidLogin() {
 
         mvc.perform(
-            post("/users/public/login")
+            post("/api/v1/users/public/login")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""{ "email": "YYY", "password": "XXX" }""")
         )
@@ -71,7 +71,8 @@ class TodoApplicationIntegrationTest {
 
         // initially there should no lists at all
         mvc.perform(
-            get("/lists")
+            get("/api/v1/lists")
+                .contentType(MediaType.APPLICATION_JSON)
                 .header("Authorization", "Bearer: $user1Auth")
         )
             .andExpect(status().is2xxSuccessful)
@@ -80,7 +81,7 @@ class TodoApplicationIntegrationTest {
         // lets create a list
         val list1Name = UUID.randomUUID().toString()
         val list1Result = mvc.perform(
-            post("/lists")
+            post("/api/v1/lists")
                 .header("Authorization", "Bearer: $user1Auth")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""{ "name": "$list1Name" }""")
@@ -90,37 +91,61 @@ class TodoApplicationIntegrationTest {
         val list1Id: String = JsonPath.read(list1Result.contentAsString, "$.id")
 
         // now we expect exactly one list
-        mvc.perform(get("/lists").header("Authorization", "Bearer: $user1Auth"))
+        mvc.perform(
+            get("/api/v1/lists")
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("Authorization", "Bearer: $user1Auth")
+        )
             .andExpect(status().is2xxSuccessful)
             .andExpect(jsonPath("$.length()", `is`(1)))
             .andExpect(jsonPath("$[0].name", `is`(list1Name)))
 
         // user 2 should not see anything
-        mvc.perform(get("/lists").header("Authorization", "Bearer: $user2Auth"))
+        mvc.perform(
+            get("/api/v1/lists")
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("Authorization", "Bearer: $user2Auth")
+        )
             .andExpect(status().is2xxSuccessful)
             .andExpect(jsonPath("$.length()", `is`(0)))
 
         // user 2 should not be able to delete it
-        mvc.perform(delete("/lists/$list1Id").header("Authorization", "Bearer: $user2Auth"))
+        mvc.perform(
+            delete("/api/v1/lists/$list1Id")
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("Authorization", "Bearer: $user2Auth")
+        )
             .andExpect(status().isForbidden)
 
         // try to delete non existing list
-        mvc.perform(delete("/lists/79543e6d-e074-40af-a491-10dd6b0d9b08").header("Authorization", "Bearer: $user1Auth"))
+        mvc.perform(
+            delete("/api/v1/lists/79543e6d-e074-40af-a491-10dd6b0d9b08")
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("Authorization", "Bearer: $user1Auth")
+        )
             .andExpect(status().isNotFound)
 
         // and delete it immediately
-        mvc.perform(delete("/lists/$list1Id").header("Authorization", "Bearer: $user1Auth"))
+        mvc.perform(
+            delete("/api/v1/lists/$list1Id")
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("Authorization", "Bearer: $user1Auth")
+        )
             .andExpect(status().is2xxSuccessful)
 
         // now it should be gone
-        mvc.perform(get("/lists").header("Authorization", "Bearer: $user1Auth"))
+        mvc.perform(
+            get("/api/v1/lists")
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("Authorization", "Bearer: $user1Auth")
+        )
             .andExpect(status().is2xxSuccessful)
             .andExpect(jsonPath("$.length()", `is`(0)))
 
         // create a new one
         val list2Name = UUID.randomUUID().toString()
         val response = mvc.perform(
-            post("/lists")
+            post("/api/v1/lists")
                 .header("Authorization", "Bearer: $user1Auth")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""{ "name": "$list2Name" }""")
@@ -130,7 +155,7 @@ class TodoApplicationIntegrationTest {
 
         // user 2 should not be able to add an item
         mvc.perform(
-            post("/lists/$list2Id")
+            post("/api/v1/lists/$list2Id")
                 .header("Authorization", "Bearer: $user2Auth")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""{ "name": "${UUID.randomUUID()}" }""")
@@ -139,7 +164,7 @@ class TodoApplicationIntegrationTest {
 
         // add to invalid list should fail
         mvc.perform(
-            post("/lists/bd02ef7b-9e13-4ccc-bc7c-b53eff1f4907")
+            post("/api/v1/lists/bd02ef7b-9e13-4ccc-bc7c-b53eff1f4907")
                 .header("Authorization", "Bearer: $user2Auth")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""{ "name": "${UUID.randomUUID()}" }""")
@@ -149,7 +174,7 @@ class TodoApplicationIntegrationTest {
         // and add an item
         val item1Name = "AAA"
         val item1AddResult = mvc.perform(
-            post("/lists/$list2Id")
+            post("/api/v1/lists/$list2Id")
                 .header("Authorization", "Bearer: $user1Auth")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""{ "name": "$item1Name" }""")
@@ -163,7 +188,7 @@ class TodoApplicationIntegrationTest {
 
         // get the list
         mvc.perform(
-            get("/lists/$list2Id")
+            get("/api/v1/lists/$list2Id")
                 .header("Authorization", "Bearer: $user1Auth")
                 .contentType(MediaType.APPLICATION_JSON)
         )
@@ -175,7 +200,7 @@ class TodoApplicationIntegrationTest {
 
         // user 2 should not be able to update item1
         mvc.perform(
-            patch("/lists/$list2Id/items/$item1Id")
+            patch("/api/v1/lists/$list2Id/items/$item1Id")
                 .header("Authorization", "Bearer: $user2Auth")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""{ "name": "newnameforbidden" }""")
@@ -185,7 +210,7 @@ class TodoApplicationIntegrationTest {
         // update name of item1
         val item1NewName = "BBB"
         mvc.perform(
-            patch("/lists/$list2Id/items/$item1Id")
+            patch("/api/v1/lists/$list2Id/items/$item1Id")
                 .header("Authorization", "Bearer: $user1Auth")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""{ "name": "$item1NewName" }""")
@@ -197,7 +222,7 @@ class TodoApplicationIntegrationTest {
 
         // update status if item1
         mvc.perform(
-            patch("/lists/$list2Id/items/$item1Id")
+            patch("/api/v1/lists/$list2Id/items/$item1Id")
                 .header("Authorization", "Bearer: $user1Auth")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""{ "done": "true" }""")
@@ -210,7 +235,7 @@ class TodoApplicationIntegrationTest {
         // and a second item
         val item2Name = "AAA"
         mvc.perform(
-            post("/lists/$list2Id")
+            post("/api/v1/lists/$list2Id")
                 .header("Authorization", "Bearer: $user1Auth")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""{ "name": "$item2Name" }""")
@@ -222,7 +247,7 @@ class TodoApplicationIntegrationTest {
 
         // lets delete item1
         mvc.perform(
-            delete("/lists/$list2Id/items/$item1Id")
+            delete("/api/v1/lists/$list2Id/items/$item1Id")
                 .header("Authorization", "Bearer: $user1Auth")
                 .contentType(MediaType.APPLICATION_JSON)
         )
@@ -231,11 +256,19 @@ class TodoApplicationIntegrationTest {
             .andExpect(jsonPath("$.items[0].name", `is`("AAA")))
 
         // delete list 2
-        mvc.perform(delete("/lists/$list2Id").header("Authorization", "Bearer: $user1Auth"))
+        mvc.perform(
+            delete("/api/v1/lists/$list2Id")
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("Authorization", "Bearer: $user1Auth")
+        )
             .andExpect(status().is2xxSuccessful)
 
         // now it should be gone
-        mvc.perform(get("/lists").header("Authorization", "Bearer: $user1Auth"))
+        mvc.perform(
+            get("/api/v1/lists")
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("Authorization", "Bearer: $user1Auth")
+        )
             .andExpect(status().is2xxSuccessful)
             .andExpect(jsonPath("$.length()", `is`(0)))
     }
@@ -244,14 +277,14 @@ class TodoApplicationIntegrationTest {
         val user = UUID.randomUUID().toString()
 
         mvc.perform(
-            post("/users/public/register")
+            post("/api/v1/users/public/register")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""{ "email": "$user", "password": "$user" }""")
         )
             .andExpect(status().`is`(204))
 
         val result = mvc.perform(
-            post("/users/public/login")
+            post("/api/v1/users/public/login")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""{ "email": "$user", "password": "$user" }""")
         )
