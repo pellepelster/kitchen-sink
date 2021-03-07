@@ -1,8 +1,8 @@
 package io.pelle.todo.user
 
+import io.pelle.todo.db.generated.Tables
+import io.pelle.todo.db.generated.tables.records.UsersRecord
 import org.jooq.DSLContext
-import org.jooq.generated.Tables
-import org.jooq.generated.tables.records.UsersRecord
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import java.util.UUID

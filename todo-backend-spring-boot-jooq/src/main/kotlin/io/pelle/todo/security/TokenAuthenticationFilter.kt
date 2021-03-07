@@ -10,8 +10,6 @@ import javax.servlet.FilterChain
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
-// import static com.google.common.net.HttpHeaders.AUTHORIZATION;
-
 class TokenAuthenticationFilter(requiresAuth: RequestMatcher?) :
     AbstractAuthenticationProcessingFilter(requiresAuth) {
 

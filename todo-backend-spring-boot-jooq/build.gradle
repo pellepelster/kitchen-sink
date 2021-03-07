@@ -48,39 +48,28 @@ compileKotlin {
 jooq {
     configurations {
         main {
-            generateSchemaSourceOnCompilation = true  // default (can be omitted)
-
             generationTool {
                 logging = org.jooq.meta.jaxb.Logging.WARN
 
-				generator {
+                generator {
                     name = 'org.jooq.codegen.DefaultGenerator'
 
-					database {
+                    target {
+                        packageName = 'io.pelle.todo.db.generated'
+                    }
+
+                    database {
                         name = 'org.jooq.meta.extensions.liquibase.LiquibaseDatabase'
                         properties {
 
-                            // Specify the location of your XML, YAML, or JSON script.
                             property {
                                 key = 'scripts'
                                 value = 'src/main/resources/db/changelog/db.changelog-master.yaml'
                             }
 
-                            // Whether you want to include liquibase tables in generated output
-                            //
-                            // - false (default)
-                            // - true: includes DATABASECHANGELOG and DATABASECHANGELOGLOCK tables
                             property {
                                 key = 'includeLiquibaseTables'
                                 value = false
-                            }
-
-                            // The property "changeLogParameters.contexts" will be passed on to the
-                            // liquibase.database.Database.update() call (jOOQ 3.13.2+).
-                            // See https://www.liquibase.org/documentation/contexts.html
-                            property {
-                                key = 'changeLogParameters.contexts'
-                                value = '!test'
                             }
                         }
                     }
@@ -117,7 +106,7 @@ dependencies {
 
     jooqGenerator 'org.jooq:jooq-meta-extensions-liquibase'
     jooqGenerator 'org.liquibase:liquibase-core'
-	jooqGenerator 'org.yaml:snakeyaml:1.28'
+    jooqGenerator 'org.yaml:snakeyaml:1.28'
     jooqGenerator 'org.slf4j:slf4j-jdk14:1.7.30'
 }
 

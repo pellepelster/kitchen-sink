@@ -1,10 +1,10 @@
 package io.pelle.todo.user
 
+import io.pelle.todo.db.generated.tables.records.UsersRecord
 import io.pelle.todo.user.model.UserLoginRequest
 import io.pelle.todo.user.model.UserLoginResponse
 import io.pelle.todo.user.model.UserRegistrationRequest
 import io.swagger.v3.oas.annotations.tags.Tag
-import org.jooq.generated.tables.records.UsersRecord
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity

@@ -1,5 +1,7 @@
 package io.pelle.todo.lists
 
+import io.pelle.todo.db.generated.Tables.LISTS
+import io.pelle.todo.db.generated.Tables.LISTS_ITEMS
 import io.pelle.todo.lists.model.TodoListCreateRequest
 import io.pelle.todo.lists.model.TodoListItemCreateRequest
 import io.pelle.todo.lists.model.TodoListItemResponse
@@ -9,8 +11,6 @@ import io.pelle.todo.user.TodoUser
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.jooq.DSLContext
-import org.jooq.generated.Tables.LISTS
-import org.jooq.generated.Tables.LISTS_ITEMS
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -50,7 +50,7 @@ class ListsController(val dsl: DSLContext) {
         list.userId = ensureUserId(authentication)
         list.store()
 
-        return listResponseWithStatus(id, authentication, HttpStatus.CREATED)
+        return listResponseWithStatus(authentication, HttpStatus.CREATED)
     }
 
     @DeleteMapping("/{id}")
@@ -65,7 +65,7 @@ class ListsController(val dsl: DSLContext) {
     fun get(@PathVariable id: UUID, @Parameter(hidden = true) authentication: Authentication): ResponseEntity<TodoListResponse> {
         checkExistenceAndAccess<TodoListResponse>(id, authentication)?.let { return it }
 
-        return listResponseWithStatus(id, authentication, HttpStatus.OK)
+        return listResponseWithStatus(authentication, HttpStatus.OK)
     }
 
     @PostMapping("/{id}")
@@ -82,7 +82,7 @@ class ListsController(val dsl: DSLContext) {
         item.listId = id
         item.store()
 
-        return listResponseWithStatus(id, authentication, HttpStatus.CREATED)
+        return listResponseWithStatus(authentication, HttpStatus.CREATED)
     }
 
     @DeleteMapping("/{listId}/items/{itemId}")
@@ -94,7 +94,7 @@ class ListsController(val dsl: DSLContext) {
 
         dsl.deleteFrom(LISTS_ITEMS).where(LISTS_ITEMS.ID.eq(itemId)).execute()
 
-        return listResponseWithStatus(listId, authentication, HttpStatus.OK)
+        return listResponseWithStatus(authentication, HttpStatus.OK)
     }
 
     @PatchMapping("/{listId}/items/{itemId}")
@@ -114,7 +114,7 @@ class ListsController(val dsl: DSLContext) {
             dsl.update(LISTS_ITEMS).set(LISTS_ITEMS.DONE, it).where(LISTS_ITEMS.ID.eq(itemId)).execute()
         }
 
-        return listResponseWithStatus(listId, authentication, HttpStatus.OK)
+        return listResponseWithStatus(authentication, HttpStatus.OK)
     }
 
     private fun <T : Any> checkExistenceAndAccess(
@@ -144,7 +144,6 @@ class ListsController(val dsl: DSLContext) {
     }
 
     private fun listResponseWithStatus(
-        id: UUID,
         authentication: Authentication,
         status: HttpStatus
     ): ResponseEntity<TodoListResponse> {
