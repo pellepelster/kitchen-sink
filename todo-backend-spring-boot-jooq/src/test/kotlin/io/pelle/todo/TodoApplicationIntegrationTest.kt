@@ -2,7 +2,6 @@ package io.pelle.todo
 
 import com.jayway.jsonpath.JsonPath
 import org.hamcrest.core.Is.`is`
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.runner.RunWith
 import org.springframework.beans.factory.annotation.Autowired
@@ -270,7 +269,6 @@ class TodoApplicationIntegrationTest {
             .andExpect(status().`is`(400))
             .andExpect(jsonPath("$.messages[0].code", `is`("items.create.name.mandatory")))
             .andExpect(jsonPath("$.messages[0].attribute", `is`("name")))
-
 
         // and add an item
         val item1Name = "AAA"
