@@ -1,0 +1,16 @@
+<div class="container-fluid pt-3" *transloco='let t'>
+
+  <div class="row justify-content-md-center p-4" *ngIf="lists.length == 0">
+    <div class="col-5 text-center">
+      <button mat-raised-button color="primary" (click)="openAddDialog()">
+        {{t('lists.add_first')}}
+      </button>
+    </div>
+  </div>
+
+  <div class="row align-items-start" *ngIf="lists.length > 0">
+    <todo-list class="col-5 todo-list" id="todo-list-{{list.id}}" *ngFor="let list of lists; trackBy: listId;" [list]="list"
+               (delete)="deleteList(list.id)"></todo-list>
+  </div>
+
+</div>

@@ -1,0 +1,33 @@
+<div class="container">
+  <div class="row justify-content-md-center">
+    <div class="col-5">
+
+      <mat-card *transloco='let t'>
+        <mat-card-title>{{t("users.register.title")}}</mat-card-title>
+        <mat-card-content>
+          <mat-form-field class="w-100">
+            <mat-label>Email</mat-label>
+            <input matInput [errorStateMatcher]="emailErrorMatcher" [(ngModel)]="email" placeholder="" value=""/>
+            <mat-error>
+              {{getErrorText('email')}}
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field class="w-100">
+            <mat-label>Password</mat-label>
+            <input matInput [errorStateMatcher]="passwordErrorMatcher" [(ngModel)]="password" placeholder="" value=""/>
+            <mat-error>
+              {{getErrorText('password')}}
+            </mat-error>
+          </mat-form-field>
+
+        </mat-card-content>
+        <mat-card-actions class="d-flex justify-content-between">
+          <a routerLink="/login">{{t("users.login.title")}}</a>
+
+          <button mat-raised-button color="primary" (click)="doRegister()">{{t("users.register.title")}}</button>
+        </mat-card-actions>
+      </mat-card>
+    </div>
+  </div>
+</div>
