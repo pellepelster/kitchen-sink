@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+
+set -eu
+
+DIR="$( cd "$(dirname "$0")" ; pwd -P )"
+DOCKER_IMAGE_NAME="todo-ingress"
+
+task_usage() {
+  echo "usage: $0 clean | build | test"
+  exit 1
+}
+
+task_build() {
+  (
+    cd "${DIR}"
+    docker build -t "${DOCKER_IMAGE_NAME}" .
+  )
+}
+
+task_generate() {
+  echo "generate"
+}
+
+task_test() {
+  echo "test"
+}
+
+task_clean() {
+  echo "clean"
+}
+
+cmd="${1:-}"
+shift || true
+case "$cmd" in
+  clean) task_test ;;
+  generate) task_generate ;;
+  build) task_build ;;
+  test) task_test ;;
+  *) task_usage ;;
+esac
