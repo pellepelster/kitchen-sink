@@ -1,8 +1,8 @@
 package io.pelle.todo.lists
 
 import io.pelle.todo.DocumentationConfiguration
-import io.pelle.todo.db.generated.Tables.LISTS
-import io.pelle.todo.db.generated.Tables.LISTS_ITEMS
+import io.pelle.todo.db.generated.tables.references.LISTS
+import io.pelle.todo.db.generated.tables.references.LISTS_ITEMS
 import io.pelle.todo.lists.model.TodoListCreateRequest
 import io.pelle.todo.lists.model.TodoListItemCreateRequest
 import io.pelle.todo.lists.model.TodoListItemResponse
@@ -50,13 +50,13 @@ class ListsController(val dsl: DSLContext) {
             .fetchGroups({ it.into(LISTS) }, { it.into(LISTS_ITEMS) })
         val response = result.map {
             TodoListResponse(
-                it.key.id,
-                it.key.name,
+                it.key.id!!,
+                it.key.name!!,
                 it.value.filter { item -> item.get(LISTS_ITEMS.ID) != null }.map { item ->
                     TodoListItemResponse(
-                        item.get(LISTS_ITEMS.ID),
-                        item.get(LISTS_ITEMS.NAME),
-                        item.get(LISTS_ITEMS.DONE)
+                        item.get(LISTS_ITEMS.ID)!!,
+                        item.get(LISTS_ITEMS.NAME)!!,
+                        item.get(LISTS_ITEMS.DONE)!!
                     )
                 }
             )
@@ -100,7 +100,7 @@ class ListsController(val dsl: DSLContext) {
         list.userId = ensureUserId(authentication)
         list.store()
 
-        return listResponseWithStatus(list.id, authentication, HttpStatus.CREATED)
+        return listResponseWithStatus(list.id!!, authentication, HttpStatus.CREATED)
     }
 
     @DeleteMapping("/{id}")
@@ -221,13 +221,13 @@ class ListsController(val dsl: DSLContext) {
             .fetchGroups({ it.into(LISTS) }, { it.into(LISTS_ITEMS) })
         val response = result.map {
             TodoListResponse(
-                it.key.id,
-                it.key.name,
+                it.key.id!!,
+                it.key.name!!,
                 it.value.filter { item -> item.get(LISTS_ITEMS.ID) != null }.map { item ->
                     TodoListItemResponse(
-                        item.get(LISTS_ITEMS.ID),
-                        item.get(LISTS_ITEMS.NAME),
-                        item.get(LISTS_ITEMS.DONE)
+                        item.get(LISTS_ITEMS.ID)!!,
+                        item.get(LISTS_ITEMS.NAME)!!,
+                        item.get(LISTS_ITEMS.DONE)!!
                     )
                 }
             )

@@ -1,7 +1,7 @@
 package io.pelle.todo.user
 
-import io.pelle.todo.db.generated.Tables.USERS
-import io.pelle.todo.db.generated.Tables.USERS_TOKENS
+import io.pelle.todo.db.generated.tables.Users.Companion.USERS
+import io.pelle.todo.db.generated.tables.UsersTokens.Companion.USERS_TOKENS
 import io.pelle.todo.db.generated.tables.records.UsersRecord
 import org.jooq.DSLContext
 import org.springframework.security.crypto.password.PasswordEncoder
