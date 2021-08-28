@@ -1,3 +1,4 @@
+# snippet:liquibase_example_user
 databaseChangeLog:
   - changeSet:
       id: 1
@@ -22,6 +23,7 @@ databaseChangeLog:
                   type: varchar(256)
                   constraints:
                     nullable: false
+# /snippet:liquibase_example_user
         - createTable:
             tableName: users_tokens
             columns:

@@ -3,13 +3,14 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     id("org.springframework.boot") version "2.5.0"
     id("io.spring.dependency-management") version "1.0.11.RELEASE"
+    id("nu.studer.jooq") version "5.2.1"
+    id("com.palantir.docker") version "0.26.0"
+
     kotlin("jvm") version "1.5.10"
     kotlin("plugin.spring") version "1.5.10"
-
-    id("nu.studer.jooq") version "5.2.1"
 }
 
-group = "io.pelle"
+group = "io.pelle.todo"
 version = "0.0.1-SNAPSHOT"
 
 repositories {
@@ -17,6 +18,8 @@ repositories {
 }
 
 dependencies {
+
+    implementation(project(":todo-frontend-angular"))
 
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
@@ -46,10 +49,12 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("com.h2database:h2:1.4.200")
 
+    // snippet:gradle_jooq_extension_dependency
     jooqGenerator("org.jooq:jooq-meta-extensions-liquibase")
     jooqGenerator("org.liquibase:liquibase-core:3.10.3")
     jooqGenerator("org.yaml:snakeyaml:1.28")
     jooqGenerator("org.slf4j:slf4j-jdk14:1.7.30")
+    // /snippet:gradle_jooq_extension_dependency
 }
 
 java.sourceCompatibility = JavaVersion.VERSION_13
@@ -66,6 +71,7 @@ tasks.withType<Test> {
     useJUnitPlatform()
 }
 
+// snippet:gradle_jooq_extension_configuration
 jooq {
     version.set("3.14.11")
 
@@ -86,16 +92,28 @@ jooq {
                     database.apply {
                         name = "org.jooq.meta.extensions.liquibase.LiquibaseDatabase"
                         properties.add(
-                            org.jooq.meta.jaxb.Property().withKey("scripts")
-                                .withValue("src/main/resources/db/changelog/db.changelog-master.yaml")
+                                org.jooq.meta.jaxb.Property().withKey("scripts")
+                                        .withValue("src/main/resources/db/changelog/db.changelog-master.yaml")
                         )
 
                         properties.add(
-                            org.jooq.meta.jaxb.Property().withKey("includeLiquibaseTables").withValue("false")
+                                org.jooq.meta.jaxb.Property().withKey("includeLiquibaseTables").withValue("false")
                         )
                     }
                 }
             }
         }
     }
+}
+// /snippet:gradle_jooq_extension_configuration
+
+val bootJar: org.springframework.boot.gradle.tasks.bundling.BootJar by tasks
+
+docker {
+    dependsOn(bootJar)
+    name = project.name
+    files(bootJar.outputs)
+    buildArgs(mapOf(
+            "JAR_FILE" to bootJar.archiveFileName.get()
+    ))
 }

@@ -31,7 +31,11 @@ internal class SecurityConfiguration(val provider: TokenAuthenticationProvider?)
             AntPathRequestMatcher("/api/v1/users/public/**"),
             AntPathRequestMatcher("/api-docs/**"),
             AntPathRequestMatcher("/swagger-ui.html"),
-            AntPathRequestMatcher("/swagger-ui/**")
+            AntPathRequestMatcher("/swagger-ui/**"),
+            AntPathRequestMatcher("/**/*.js"),
+            AntPathRequestMatcher("/**/*.css"),
+            AntPathRequestMatcher("/**"),
+            AntPathRequestMatcher("/**/*.ico"),
         )
 
         private val PROTECTED_URLS: RequestMatcher = NegatedRequestMatcher(PUBLIC_URLS)

@@ -13,7 +13,9 @@ class UserService(val passwordEncoder: PasswordEncoder, val dsl: DSLContext) {
 
     fun login(email: String, password: String): UUID? {
 
+        // snippet:jooq_example_user
         val user = dsl.selectFrom(USERS).where(USERS.EMAIL.eq(email)).fetchOne()
+        // /snippet:jooq_example_user
 
         if (user != null && passwordEncoder.matches(password, user.password)) {
             val tokenId = UUID.randomUUID()

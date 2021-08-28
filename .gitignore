@@ -1,6 +1,8 @@
+todo-application/todo-backend-spring-boot-jooq/target/
 .idea/
 .gradle/
 *.iml
 *.ipr
 *.iws
 build
+dump.md
