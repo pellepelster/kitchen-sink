@@ -6,3 +6,9 @@ todo-application/todo-backend-spring-boot-jooq/target/
 *.iws
 build
 dump.md
+.terraform.lock.hcl
+.terraform/
+terraform.tfstate
+terraform.tfstate.backup
+__pycache__
+venv

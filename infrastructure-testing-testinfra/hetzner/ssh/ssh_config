@@ -1,0 +1,5 @@
+Host infrastructure-testing-testinfra
+    Hostname 142.132.236.85
+    UserKnownHostsFile /home/pelle/git/kitchen-sink/infrastructure-testing-testinfra/hetzner/ssh/known_hosts
+    IdentityFile /home/pelle/git/kitchen-sink/infrastructure-testing-testinfra/hetzner/ssh/ssh_client_identity
+    IdentitiesOnly yes

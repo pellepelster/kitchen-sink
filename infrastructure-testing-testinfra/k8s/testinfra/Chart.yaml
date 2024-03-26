@@ -1,0 +1,7 @@
+apiVersion: v2
+name: testinfra
+description: an example helm chart to showcase testing with testinfra
+
+type: application
+version: 0.1.0
+appVersion: "snapshot"

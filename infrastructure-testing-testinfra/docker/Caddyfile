@@ -1,0 +1,4 @@
+:8080 {
+    root * /www/public_html
+    file_server
+}

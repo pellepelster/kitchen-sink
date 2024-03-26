@@ -1,0 +1,94 @@
+#!/usr/bin/env bash
+
+set -o errexit  -o nounset -o pipefail
+
+DIR="$(cd "$(dirname "$0")" ; pwd -P)"
+DOCKER_IMAGE_NAME="testinfra"
+DOCKER_IMAGE_TAG="snapshot"
+
+function task_clean() {
+  rm -rf "${DIR}/venv/"
+}
+
+function task_bootstrap() {
+  # snippet[bootstrap-venv]
+  if [[ ! -d "${DIR}/venv/" ]]; then
+    python3 -m venv "${DIR}/venv/"
+    "${DIR}/venv/bin/pip" install -r "${DIR}/requirements.txt"
+  fi
+  # /snippet
+}
+
+function task_docker_build {
+  (
+    cd "${DIR}/docker"
+    docker build -t "${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}" .
+  )
+}
+
+function clean_docker {
+  docker rm -f "${DOCKER_IMAGE_NAME}"
+}
+
+function task_docker_test {
+  trap clean_docker EXIT
+  # snippet[task_docker_test]
+  docker run --detach --name "${DOCKER_IMAGE_NAME}" "${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}"
+  "${DIR}/venv/bin/py.test" --verbose --capture=tee-sys --hosts="docker://${DOCKER_IMAGE_NAME}" "${DIR}/test/test_docker.py"
+  # /snippet
+}
+
+function task_hetzner_deploy {
+  (
+    export HCLOUD_TOKEN="${HCLOUD_TOKEN:-$(pass solidblocks/hetzner/test/hcloud_api_token)}"
+    cd "${DIR}/hetzner"
+    terraform init -upgrade
+    terraform apply -auto-approve
+  )
+
+  while [[ "$(ssh -F "${DIR}/hetzner/ssh/ssh_config" root@infrastructure-testing-testinfra whoami)" != "root" ]]; do
+    echo "waiting for ssh"
+    sleep 2
+  done
+}
+
+function task_hetzner_test {
+  "${DIR}/venv/bin/py.test" --verbose --capture=tee-sys --ssh-config="${DIR}/hetzner/ssh/ssh_config" --hosts='ssh://root@infrastructure-testing-testinfra' "${DIR}/test/test_hetzner.py"
+}
+
+function task_k8s_start {
+  minikube start
+}
+
+function task_k8s_deploy {
+  minikube image load ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}
+  helm upgrade --install --namespace testinfra --create-namespace testinfra ${DIR}/k8s/testinfra
+}
+
+function task_destroy {
+  (
+    cd "${DIR}/terraform"
+    terraform destroy -auto-approve
+  )
+}
+
+function task_usage {
+  echo "Usage: $0
+  "
+  exit 1
+}
+
+ARG=${1:-}
+shift || true
+
+case ${ARG} in
+  clean) task_clean $@ ;;
+  bootstrap) task_bootstrap $@ ;;
+  docker-build) task_docker_build $@ ;;
+  docker-test) task_docker_test $@ ;;
+  hetzner-deploy) task_hetzner_deploy $@ ;;
+  hetzner-test) task_hetzner_test $@ ;;
+  k8s-start) task_k8s_start $@ ;;
+  k8s-deploy) task_k8s_deploy $@ ;;
+  *) task_usage;;
+esac

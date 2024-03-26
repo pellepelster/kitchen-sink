@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+set -o pipefail -o errexit -o nounset
+
+${user_data}
+
+sshd_setup "${ssh_host_identity_key_base64}"
+system_update
+caddy_setup

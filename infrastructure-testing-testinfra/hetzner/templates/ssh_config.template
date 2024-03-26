@@ -1,0 +1,5 @@
+Host infrastructure-testing-testinfra
+    Hostname ${ip_address}
+    UserKnownHostsFile ${known_hosts_file}
+    IdentityFile ${client_identity_file}
+    IdentitiesOnly yes
