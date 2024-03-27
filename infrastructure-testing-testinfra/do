@@ -3,8 +3,11 @@
 set -o errexit  -o nounset -o pipefail
 
 DIR="$(cd "$(dirname "$0")" ; pwd -P)"
-DOCKER_IMAGE_NAME="testinfra"
+DOCKER_IMAGE_NAME="infrastructure-testing-testinfra"
+TEST_NAMESPACE="testinfra"
 DOCKER_IMAGE_TAG="snapshot"
+
+export HCLOUD_TOKEN="${HCLOUD_TOKEN:-$(pass solidblocks/hetzner/test/hcloud_api_token)}"
 
 function task_clean() {
   rm -rf "${DIR}/venv/"
@@ -12,10 +15,8 @@ function task_clean() {
 
 function task_bootstrap() {
   # snippet[bootstrap-venv]
-  if [[ ! -d "${DIR}/venv/" ]]; then
-    python3 -m venv "${DIR}/venv/"
-    "${DIR}/venv/bin/pip" install -r "${DIR}/requirements.txt"
-  fi
+  python3 -m venv "${DIR}/venv/"
+  "${DIR}/venv/bin/pip" install -r "${DIR}/requirements.txt"
   # /snippet
 }
 
@@ -39,8 +40,8 @@ function task_docker_test {
 }
 
 function task_hetzner_deploy {
+  # snippet[infrastructure-testing-testinfra_task_hetzner_deploy]
   (
-    export HCLOUD_TOKEN="${HCLOUD_TOKEN:-$(pass solidblocks/hetzner/test/hcloud_api_token)}"
     cd "${DIR}/hetzner"
     terraform init -upgrade
     terraform apply -auto-approve
@@ -50,6 +51,7 @@ function task_hetzner_deploy {
     echo "waiting for ssh"
     sleep 2
   done
+  # /snippet
 }
 
 function task_hetzner_test {
@@ -58,11 +60,21 @@ function task_hetzner_test {
 
 function task_k8s_start {
   minikube start
+  minikube image load ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}
 }
 
 function task_k8s_deploy {
-  minikube image load ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}
-  helm upgrade --install --namespace testinfra --create-namespace testinfra ${DIR}/k8s/testinfra
+  # snippet[task_k8s_deploy]
+  helm upgrade --install --namespace ${TEST_NAMESPACE} --create-namespace testinfra ${DIR}/k8s/testinfra
+  # /snippet
+}
+
+function task_k8s_test {
+  # snippet[task_k8s_test]
+  export TEST_POD="$(kubectl get pods --namespace ${TEST_NAMESPACE} --output jsonpath="{.items[0].metadata.name}")"
+  echo "selected pod '${TEST_POD}' for test execution"
+  "${DIR}/venv/bin/py.test" --verbose --capture=tee-sys --hosts="kubectl://${TEST_POD}?namespace=${TEST_NAMESPACE}" "${DIR}/test/test_k8s.py"
+  # /snippet
 }
 
 function task_destroy {
@@ -90,5 +102,6 @@ case ${ARG} in
   hetzner-test) task_hetzner_test $@ ;;
   k8s-start) task_k8s_start $@ ;;
   k8s-deploy) task_k8s_deploy $@ ;;
+  k8s-test) task_k8s_test $@ ;;
   *) task_usage;;
 esac

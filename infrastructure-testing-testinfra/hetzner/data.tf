@@ -7,6 +7,7 @@ data "template_file" "user_data" {
   }
 }
 
+# snippet[infrastructure-testing-testinfra_template_file_known_hosts]
 data "template_file" "known_hosts" {
   template = file("${path.module}/templates/known_hosts.template")
 
@@ -15,6 +16,7 @@ data "template_file" "known_hosts" {
     ssh_host_identity_pub = tls_private_key.ssh_host_identity.public_key_openssh
   }
 }
+# /snippet
 
 data "template_file" "ssh_config" {
   template = file("${path.module}/templates/ssh_config.template")

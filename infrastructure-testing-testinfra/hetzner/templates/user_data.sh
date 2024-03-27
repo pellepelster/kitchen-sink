@@ -12,6 +12,7 @@ function system_update {
   fi
 }
 
+# snippet[infrastructure-testing-testinfra_userdata-ssh]
 function sshd_config {
 cat <<-EOF
 HostKey /etc/ssh/ssh_host_identity_key
@@ -43,6 +44,7 @@ function sshd_setup() {
   sshd_config > /etc/ssh/sshd_config
   service ssh restart
 }
+# /snippet
 
 function caddy_config {
 cat <<-EOF

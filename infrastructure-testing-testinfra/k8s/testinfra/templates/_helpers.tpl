@@ -49,14 +49,3 @@ Selector labels
 app.kubernetes.io/name: {{ include "testinfra.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
-
-{{/*
-Create the name of the service account to use
-*/}}
-{{- define "testinfra.serviceAccountName" -}}
-{{- if .Values.serviceAccount.create }}
-{{- default (include "testinfra.fullname" .) .Values.serviceAccount.name }}
-{{- else }}
-{{- default "default" .Values.serviceAccount.name }}
-{{- end }}
-{{- end }}

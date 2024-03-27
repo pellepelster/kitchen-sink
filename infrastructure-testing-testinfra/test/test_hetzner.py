@@ -5,6 +5,8 @@ import pytest
 import requests
 
 
+# snippet[infrastructure-testing-wait-cloud-init]
+
 def wait_until(predicate, timeout, period=2, *args, **kwargs):
     end = time.time() + timeout
     while time.time() < end:
@@ -26,12 +28,14 @@ def wait_for_host_is_initialized(host):
     assert len(result['v1']['errors']) == 0, f"cloud init finished with errors '{result['v1']['errors']}'"
 
 
-def test_caddy_runs_as_non_root_user(host):
+def test_hetzner_caddy_runs_as_non_root_user(host):
     caddy = host.process.get(comm="caddy")
     assert caddy.user == 'caddy'
 
 
-def test_caddy_reachable_from_outside(host):
+# /snippet
+
+def test_hetzner_caddy_reachable_from_outside(host):
     for address in host.interface("eth0", "inet").addresses:
         response = requests.get(f"http://{address}")
         assert response.status_code == 200, "unexpected status code: " + str(response.status_code)
