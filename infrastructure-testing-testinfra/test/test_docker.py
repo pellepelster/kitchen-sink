@@ -1,4 +1,4 @@
-# snippet[test_caddy_runs_as_non_root_user]
+# snippet[infrastructure-testing-testinfra_test_caddy_runs_as_non_root_user]
 def test_caddy_runs_as_non_root_user(host):
     caddy = host.process.get(comm="caddy")
     assert caddy.user == 'www'

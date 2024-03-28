@@ -20,7 +20,7 @@ data "template_file" "known_hosts" {
 
 data "template_file" "ssh_config" {
   template = file("${path.module}/templates/ssh_config.template")
-  vars     = {
+  vars = {
     ip_address           = hcloud_server.server.ipv4_address
     known_hosts_file     = abspath("${path.module}/${local_file.known_hosts.filename}")
     client_identity_file = abspath("${path.module}/${local_file.ssh_client_identity.filename}")

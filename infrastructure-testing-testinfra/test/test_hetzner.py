@@ -5,7 +5,7 @@ import pytest
 import requests
 
 
-# snippet[infrastructure-testing-wait-cloud-init]
+# snippet[infrastructure-testing-testinfra_wait-cloud-init]
 
 def wait_until(predicate, timeout, period=2, *args, **kwargs):
     end = time.time() + timeout
