@@ -1,0 +1,13 @@
+Host postgresql
+    Hostname 128.140.85.139
+    IdentityFile /home/pelle/git/kitchen-sink/postgres-performance-debugging/hetzner/ssh/ssh_client_identity
+    UserKnownHostsFile /dev/null
+    StrictHostKeyChecking accept-new
+    IdentitiesOnly yes
+
+Host pgbench
+    Hostname 49.13.131.23
+    IdentityFile /home/pelle/git/kitchen-sink/postgres-performance-debugging/hetzner/ssh/ssh_client_identity
+    UserKnownHostsFile /dev/null
+    StrictHostKeyChecking accept-new
+    IdentitiesOnly yes

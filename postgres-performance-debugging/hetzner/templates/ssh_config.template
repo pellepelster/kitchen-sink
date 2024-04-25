@@ -1,0 +1,13 @@
+Host postgresql
+    Hostname ${postgresql_ip_address}
+    IdentityFile ${client_identity_file}
+    UserKnownHostsFile /dev/null
+    StrictHostKeyChecking accept-new
+    IdentitiesOnly yes
+
+Host pgbench
+    Hostname ${pgbench_ip_address}
+    IdentityFile ${client_identity_file}
+    UserKnownHostsFile /dev/null
+    StrictHostKeyChecking accept-new
+    IdentitiesOnly yes

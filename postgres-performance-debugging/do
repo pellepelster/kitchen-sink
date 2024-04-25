@@ -1,0 +1,193 @@
+#!/usr/bin/env bash
+
+set -o errexit  -o nounset -o pipefail
+
+DIR="$(cd "$(dirname "$0")" ; pwd -P)"
+
+function hetzner_ssh_wrapper() {
+  local host="${1:-}"
+  shift || true
+  ssh -F "${DIR}/hetzner/ssh/ssh_config" "root@${host}" $@
+}
+
+function hetzner_terraform() {
+  export HCLOUD_TOKEN="${HCLOUD_TOKEN:-$(pass solidblocks/hetzner/test/hcloud_api_token)}"
+  (
+    cd "${DIR}/hetzner"
+    terraform $@
+  )
+}
+
+function divider_bold() {
+  echo "=================================================================================================="
+}
+
+function divider_thin() {
+  echo "--------------------------------------------------------------------------------------------------"
+}
+
+
+function divider_bold() {
+  echo "=================================================================================================="
+}
+
+function divider_thin() {
+  echo "--------------------------------------------------------------------------------------------------"
+}
+
+# snippet[postgres-performance-load_scenario]
+function load_scenario() {
+  local scenario="${1:-}"
+  shift || true
+
+  if [[ -z "${scenario}" ]]; then
+    echo "no scenario provided"
+    exit 1
+  fi
+
+  if [[ ! -f "${DIR}/scenarios/${scenario}" ]]; then
+    echo "scenario '${scenario}' not found"
+    exit 1
+  fi
+
+  divider_bold
+  echo "loading scenario '${scenario}'"
+  export $(grep -v '^#' "${DIR}/scenarios/${scenario}" | xargs)
+  divider_thin
+  echo "postgresql instance type: ${POSTGRESQL_INSTANCE_SIZE}"
+  echo "pgbench init scale: ${PGBENCH_INIT_SCALE}"
+  echo "pgbench run time: ${PGBENCH_TIME}"
+  echo "pgbench aggregation interval: ${PGBENCH_AGGREGATION_INTERVAL}"
+  divider_bold
+}
+# /snippet
+
+# snippet[postgres-performance-task_hetzner_deploy]
+function task_hetzner_deploy() {
+  load_scenario $@
+  echo ""
+
+  divider_bold
+  echo "deploying postgresql database with instance size '${POSTGRESQL_INSTANCE_SIZE}'"
+  divider_thin
+  export TF_VAR_instance_type=${POSTGRESQL_INSTANCE_SIZE}
+  hetzner_terraform init -upgrade
+  hetzner_terraform apply -auto-approve -target hcloud_volume.backup
+  hetzner_terraform apply -auto-approve -target hcloud_volume.data
+  hetzner_terraform apply -auto-approve
+  divider_bold
+}
+# /snippet
+
+function task_hetzner_pgbench_init() {
+  load_scenario $@
+  pgbench_init $(hetzner_terraform output -raw ipv4_address)
+}
+
+function task_hetzner_clean {
+    hetzner_terraform destroy -auto-approve
+}
+
+function task_hetzner_pgbench_run() {
+  local scenario="${1:-dev}"
+  load_scenario ${scenario}
+  pgbench_run $(hetzner_terraform output -raw ipv4_address) "test1"
+}
+
+function task_hetzner_pgbench_logs() {
+  local scenario="${1:-dev}"
+  local test_id="${2:-}"
+
+  load_scenario ${scenario}
+
+  local logs_dir="${DIR}/results/${test_id}/logs"
+
+  rm -rf "${logs_dir}"
+  mkdir -p "${logs_dir}"
+  scp -F "${DIR}/hetzner/ssh/ssh_config" "root@pgbench:${test_id}.*" "${logs_dir}"
+}
+
+function task_hetzner_pgbench_graph() {
+  local scenario="${1:-dev}"
+  load_scenario ${scenario}
+
+  pgbench_graph "test1"
+}
+
+function pgbench_init() {
+  local host="${1:-}"
+  hetzner_ssh_wrapper pgbench PGPASSWORD="pgbench" pgbench -h ${host} -U pgbench pgbench --initialize --scale ${PGBENCH_INIT_SCALE}
+}
+
+function pgbench_run() {
+  local host="${1:-}"
+  local test_id="${2:-}"
+
+  hetzner_ssh_wrapper "pgbench" "rm -f ${test_id}.*"
+  hetzner_ssh_wrapper pgbench PGPASSWORD="pgbench" pgbench -h ${host} -U pgbench pgbench --client 50 --jobs 8 --time ${PGBENCH_TIME} --progress 5 --log --log-prefix ${test_id} --aggregate-interval ${PGBENCH_AGGREGATION_INTERVAL}
+}
+
+function pgbench_graph() {
+  local test_id="${1:-}"
+  local results_dir="${DIR}/results/${test_id}"
+  local logs_dir="${results_dir}/logs"
+  local rrds_dir="${results_dir}/rrds"
+
+  rm -rf ${rrds_dir}
+  mkdir -p ${rrds_dir}
+
+  local colors=("#808080" "#800000" "#006400" "#808000" "#483d8b" "#3cb371" "#008b8b" "#4682b4" "#d2691e" "#00008b" "#32cd32" "#800080" "#b03060" "#d2b48c" "#ff0000" "#ffa500" "#00ff00" "#00fa9a" "#8a2be2" "#dc143c" "#0000ff" "#adff2f" "#d8bfd8" "#ff00ff" "#1e90ff" "#fa8072" "#ffff54" "#87ceeb" "#ff1493" "#7b68ee" "#ee82ee" "#7fffd4")
+  local rrd_def_tps=""
+
+  for logfile in ${logs_dir}/*; do
+    local logfile_index="${logfile##*.}"
+    if [[ "$(echo "${logfile}" | tr -cd '.' | wc -c)" == "1" ]]; then
+      logfile_index="0"
+    fi
+
+    local rrd_file=""${rrds_dir}/${test_id}_${logfile_index}.rrd""
+    echo "parsing logfile ${logfile} into '${rrd_file}'"
+
+    while read p; do
+      local interval_start=$(echo "$p" | awk -F ' ' '{print $1}')
+      local num_transactions=$(echo "$p" | awk -F ' ' '{print $2}')
+      local worker="worker${logfile_index}"
+
+      if [[ ! -f "${rrd_file}" ]]; then
+        rrd_def_tps="${rrd_def_tps} DEF:${worker}=${rrd_file}:${worker}:AVERAGE AREA:${worker}${colors[${logfile_index}]}:${worker}:STACK"
+        rrdtool create "${rrd_file}" --step ${PGBENCH_AGGREGATION_INTERVAL} DS:${worker}:GAUGE:${PGBENCH_AGGREGATION_INTERVAL}:U:U RRA:AVERAGE:0.5:1:1200 --start $((${interval_start}-1))
+      fi
+
+      rrdtool update "${rrd_file}" "${interval_start}:$((${num_transactions}/${PGBENCH_AGGREGATION_INTERVAL}))"
+    done <"${logfile}"
+
+  done
+
+  local logfile=$(ls ${logs_dir}/* | tail -1)
+  local interval_start_max=$(cat "${logfile}" | awk -F ' ' '{print $1}' | sort -n | tail -1)
+  local interval_start_min=$(cat "${logfile}" | awk -F ' ' '{print $1}' | sort -n -r | tail -1)
+
+  rrdtool graph "${results_dir}/${test_id}_tps.gif" \
+    --start ${interval_start_min} \
+    --end ${interval_start_max} \
+    --title "TPS" \
+    --width 1024 \
+    --height 300 \
+    --vertical-label "TPS" \
+        ${rrd_def_tps}
+
+  xdg-open "${results_dir}/${test_id}_tps.gif"
+}
+
+ARG=${1:-}
+shift || true
+
+case ${ARG} in
+  clean) task_clean $@ ;;
+  hetzner-deploy) task_hetzner_deploy $@ ;;
+  hetzner-pgbench-init) task_hetzner_pgbench_init $@ ;;
+  hetzner-pgbench-run) task_hetzner_pgbench_run $@ ;;
+  hetzner-pgbench-logs) task_hetzner_pgbench_logs $@ ;;
+  hetzner-pgbench-graph) task_hetzner_pgbench_graph $@ ;;
+  hetzner-clean) task_hetzner_clean $@ ;;
+esac
