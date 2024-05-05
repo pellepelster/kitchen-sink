@@ -13,8 +13,8 @@ resource "tls_private_key" "ssh_host_identity" {
 
 resource "hcloud_volume" "data" {
   name     = "rds-postgresql-data"
-  size     = 128
   format   = "ext4"
+  size     = 256
   location = var.location
 }
 
@@ -47,15 +47,17 @@ module "postgresql" {
 }
 # /snippet
 
+# snippet[postgres-performance-debugging-pgbench]
 resource "hcloud_server" "pgbench" {
   name        = "pgbench"
-  server_type = "cx11"
+  server_type = "ccx13"
   image       = "debian-11"
   location    = var.location
-  user_data = <<EOT
+  user_data   = <<EOT
 #!/usr/bin/env bash
 apt-get update
 apt-get install -y postgresql-contrib
 EOT
   ssh_keys    = [hcloud_ssh_key.ssh_client_identity.id]
 }
+# /snippet

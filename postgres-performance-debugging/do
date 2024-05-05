@@ -26,45 +26,51 @@ function divider_thin() {
   echo "--------------------------------------------------------------------------------------------------"
 }
 
+# snippet[postgres-performance-ensure_scenario]
+function ensure_scenario() {
+  SCENARIO="${1:-}"
 
-function divider_bold() {
-  echo "=================================================================================================="
-}
-
-function divider_thin() {
-  echo "--------------------------------------------------------------------------------------------------"
-}
-
-# snippet[postgres-performance-load_scenario]
-function load_scenario() {
-  local scenario="${1:-}"
-  shift || true
-
-  if [[ -z "${scenario}" ]]; then
+  if [[ -z "${SCENARIO}" ]]; then
     echo "no scenario provided"
     exit 1
   fi
 
-  if [[ ! -f "${DIR}/scenarios/${scenario}" ]]; then
-    echo "scenario '${scenario}' not found"
+  if [[ ! -f "${DIR}/scenarios/${SCENARIO}" ]]; then
+    echo "scenario '${SCENARIO}' not found"
     exit 1
   fi
 
   divider_bold
-  echo "loading scenario '${scenario}'"
-  export $(grep -v '^#' "${DIR}/scenarios/${scenario}" | xargs)
+  echo "loading scenario '${SCENARIO}'"
+  export $(grep -v '^#' "${DIR}/scenarios/${SCENARIO}" | xargs)
   divider_thin
   echo "postgresql instance type: ${POSTGRESQL_INSTANCE_SIZE}"
   echo "pgbench init scale: ${PGBENCH_INIT_SCALE}"
   echo "pgbench run time: ${PGBENCH_TIME}"
   echo "pgbench aggregation interval: ${PGBENCH_AGGREGATION_INTERVAL}"
+  echo "pgbench clients: ${PGBENCH_CLIENTS}"
+  echo "pgbench jobs: ${PGBENCH_JOBS}"
   divider_bold
+  echo ""
 }
 # /snippet
 
+function ensure_test_id() {
+  TEST_ID="${1:-}"
+
+  if [[ -z "${TEST_ID}" ]]; then
+    echo "no test id provided"
+    exit 1
+  fi
+  divider_bold
+  echo "test id '${TEST_ID}'"
+  divider_bold
+  echo ""
+}
+
 # snippet[postgres-performance-task_hetzner_deploy]
 function task_hetzner_deploy() {
-  load_scenario $@
+  ensure_scenario "${1:-}"
   echo ""
 
   divider_bold
@@ -80,8 +86,28 @@ function task_hetzner_deploy() {
 # /snippet
 
 function task_hetzner_pgbench_init() {
-  load_scenario $@
-  pgbench_init $(hetzner_terraform output -raw ipv4_address)
+  ensure_scenario "${1:-}"
+
+  local db_host="$(hetzner_terraform output -raw ipv4_address)"
+  hetzner_ssh_wrapper pgbench PGPASSWORD="pgbench" pgbench -h ${db_host} -U pgbench pgbench --initialize --scale ${PGBENCH_INIT_SCALE}
+}
+
+function task_hetzner_test() {
+  ensure_scenario "${1:-}"
+  ensure_test_id "${2:-}"
+
+  #task_hetzner_deploy ${SCENARIO}
+
+  local db_host="$(hetzner_terraform output -raw ipv4_address)"
+  while ! nc -z ${db_host} 5432; do
+    echo "waiting for database"
+    sleep 1
+  done
+
+  task_hetzner_pgbench_init ${SCENARIO}
+  task_hetzner_pgbench_run ${SCENARIO} ${TEST_ID}
+  task_hetzner_pgbench_logs ${SCENARIO} ${TEST_ID}
+  task_hetzner_pgbench_graph ${SCENARIO} ${TEST_ID}
 }
 
 function task_hetzner_clean {
@@ -89,47 +115,31 @@ function task_hetzner_clean {
 }
 
 function task_hetzner_pgbench_run() {
-  local scenario="${1:-dev}"
-  load_scenario ${scenario}
-  pgbench_run $(hetzner_terraform output -raw ipv4_address) "test1"
+  ensure_scenario "${1:-}"
+  ensure_test_id "${2:-}"
+
+  local db_host="$(hetzner_terraform output -raw ipv4_address)"
+
+  hetzner_ssh_wrapper "pgbench" "rm -f ${SCENARIO}_${TEST_ID}.*"
+  hetzner_ssh_wrapper pgbench PGPASSWORD="pgbench" pgbench -h ${db_host} -U pgbench pgbench --client ${PGBENCH_CLIENTS} --jobs ${PGBENCH_JOBS} --time ${PGBENCH_TIME} --progress ${PGBENCH_AGGREGATION_INTERVAL} --log --log-prefix "${SCENARIO}_${TEST_ID}" --aggregate-interval ${PGBENCH_AGGREGATION_INTERVAL}
 }
 
 function task_hetzner_pgbench_logs() {
-  local scenario="${1:-dev}"
-  local test_id="${2:-}"
+  ensure_scenario "${1:-}"
+  ensure_test_id "${2:-}"
 
-  load_scenario ${scenario}
-
-  local logs_dir="${DIR}/results/${test_id}/logs"
+  local logs_dir="${DIR}/results/${SCENARIO}/${TEST_ID}/logs"
 
   rm -rf "${logs_dir}"
   mkdir -p "${logs_dir}"
-  scp -F "${DIR}/hetzner/ssh/ssh_config" "root@pgbench:${test_id}.*" "${logs_dir}"
+  scp -F "${DIR}/hetzner/ssh/ssh_config" "root@pgbench:${SCENARIO}_${TEST_ID}.*" "${logs_dir}"
 }
 
 function task_hetzner_pgbench_graph() {
-  local scenario="${1:-dev}"
-  load_scenario ${scenario}
+  ensure_scenario "${1:-}"
+  ensure_test_id "${2:-}"
 
-  pgbench_graph "test1"
-}
-
-function pgbench_init() {
-  local host="${1:-}"
-  hetzner_ssh_wrapper pgbench PGPASSWORD="pgbench" pgbench -h ${host} -U pgbench pgbench --initialize --scale ${PGBENCH_INIT_SCALE}
-}
-
-function pgbench_run() {
-  local host="${1:-}"
-  local test_id="${2:-}"
-
-  hetzner_ssh_wrapper "pgbench" "rm -f ${test_id}.*"
-  hetzner_ssh_wrapper pgbench PGPASSWORD="pgbench" pgbench -h ${host} -U pgbench pgbench --client 50 --jobs 8 --time ${PGBENCH_TIME} --progress 5 --log --log-prefix ${test_id} --aggregate-interval ${PGBENCH_AGGREGATION_INTERVAL}
-}
-
-function pgbench_graph() {
-  local test_id="${1:-}"
-  local results_dir="${DIR}/results/${test_id}"
+  local results_dir="${DIR}/results/${SCENARIO}/${TEST_ID}"
   local logs_dir="${results_dir}/logs"
   local rrds_dir="${results_dir}/rrds"
 
@@ -145,17 +155,17 @@ function pgbench_graph() {
       logfile_index="0"
     fi
 
-    local rrd_file=""${rrds_dir}/${test_id}_${logfile_index}.rrd""
+    local rrd_file=""${rrds_dir}/${TEST_ID}_${logfile_index}.rrd""
     echo "parsing logfile ${logfile} into '${rrd_file}'"
 
     while read p; do
       local interval_start=$(echo "$p" | awk -F ' ' '{print $1}')
       local num_transactions=$(echo "$p" | awk -F ' ' '{print $2}')
-      local worker="worker${logfile_index}"
+      local job="job${logfile_index}"
 
       if [[ ! -f "${rrd_file}" ]]; then
-        rrd_def_tps="${rrd_def_tps} DEF:${worker}=${rrd_file}:${worker}:AVERAGE AREA:${worker}${colors[${logfile_index}]}:${worker}:STACK"
-        rrdtool create "${rrd_file}" --step ${PGBENCH_AGGREGATION_INTERVAL} DS:${worker}:GAUGE:${PGBENCH_AGGREGATION_INTERVAL}:U:U RRA:AVERAGE:0.5:1:1200 --start $((${interval_start}-1))
+        rrd_def_tps="${rrd_def_tps} DEF:${job}=${rrd_file}:${job}:AVERAGE AREA:${job}${colors[${logfile_index}]}:${job}:STACK"
+        rrdtool create "${rrd_file}" --step ${PGBENCH_AGGREGATION_INTERVAL} DS:${job}:GAUGE:${PGBENCH_AGGREGATION_INTERVAL}:U:U RRA:AVERAGE:0.5:1:1200 --start $((${interval_start}-1))
       fi
 
       rrdtool update "${rrd_file}" "${interval_start}:$((${num_transactions}/${PGBENCH_AGGREGATION_INTERVAL}))"
@@ -167,27 +177,43 @@ function pgbench_graph() {
   local interval_start_max=$(cat "${logfile}" | awk -F ' ' '{print $1}' | sort -n | tail -1)
   local interval_start_min=$(cat "${logfile}" | awk -F ' ' '{print $1}' | sort -n -r | tail -1)
 
-  rrdtool graph "${results_dir}/${test_id}_tps.gif" \
+  rrdtool graph "${results_dir}/${TEST_ID}_tps.png" \
     --start ${interval_start_min} \
     --end ${interval_start_max} \
-    --title "TPS" \
+    --title "${SCENARIO} ${TEST_ID}" \
     --width 1024 \
     --height 300 \
     --vertical-label "TPS" \
         ${rrd_def_tps}
 
-  xdg-open "${results_dir}/${test_id}_tps.gif"
+  xdg-open "${results_dir}/${TEST_ID}_tps.png"
+}
+
+function task_hetzner_info() {
+  local tables_size_query=$(cat <<-END
+SELECT
+   relname  as table_name,
+   pg_size_pretty(pg_indexes_size(relid)) as "Index Size",
+   pg_size_pretty(pg_relation_size(relid)) as "Table Size"
+   FROM pg_catalog.pg_statio_user_tables
+ORDER BY pg_total_relation_size(relid) DESC;
+END
+)
+
+  local db_host="$(hetzner_terraform output -raw ipv4_address)"
+  echo ${tables_size_query} | hetzner_ssh_wrapper pgbench PGPASSWORD="pgbench" psql -h ${db_host} -U pgbench pgbench
 }
 
 ARG=${1:-}
 shift || true
 
 case ${ARG} in
-  clean) task_clean $@ ;;
   hetzner-deploy) task_hetzner_deploy $@ ;;
   hetzner-pgbench-init) task_hetzner_pgbench_init $@ ;;
   hetzner-pgbench-run) task_hetzner_pgbench_run $@ ;;
   hetzner-pgbench-logs) task_hetzner_pgbench_logs $@ ;;
   hetzner-pgbench-graph) task_hetzner_pgbench_graph $@ ;;
   hetzner-clean) task_hetzner_clean $@ ;;
+  hetzner-info) task_hetzner_info $@ ;;
+  hetzner-test) task_hetzner_test $@ ;;
 esac
