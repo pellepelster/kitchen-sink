@@ -41,7 +41,7 @@
         </li>
         <li>
             <i class="text-warning iconoir-check-square-solid"></i>
-            Parsing did not fail, but the result differed from the expected result of ${expectedTimestamp}
+            Parsing did not fail, but the result differed from the expected result of ${expectedTimestamp}, this can be a parsing error, or caused by missing precision/timezone in the input timestamp
         </li>
         <li>
             <i class="text-danger iconoir-xmark-circle-solid"></i>
