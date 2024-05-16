@@ -70,7 +70,8 @@
                     <#if parseResult.status == "ok">
                         <i class="iconoir-check-square-solid"></i>
                     <#elseif parseResult.status == "diff">
-                        <i class="iconoir-check-square-solid"></i>
+                        <i data-bs-toggle="tooltip" data-bs-title="diff ${(parseResult.diff)!"<unknown>"}"
+                           class="iconoir-check-circle-solid"></i>
                     <#elseif parseResult.status == "failed">
                         <i data-bs-toggle="tooltip" data-bs-title="${(parseResult.error)!"<unknown>"}"
                            class="iconoir-xmark-circle-solid"></i>

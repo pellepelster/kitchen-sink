@@ -4,7 +4,7 @@ import io.pelle.jvm.time.Parser
 import io.pelle.jvm.time.safeParse
 
 class SqlDate : Parser {
-    override fun parse(now: String) = listOf(safeParse("java.sql.Date.parse") {
+    override fun parse(now: String) = listOf(safeParse("java.sql.Date.parse(String)") {
         java.sql.Date.parse(now)
     })
 }

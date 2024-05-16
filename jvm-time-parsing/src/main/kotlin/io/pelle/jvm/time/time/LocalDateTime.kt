@@ -6,7 +6,7 @@ import java.time.LocalDateTime
 import java.time.ZoneOffset
 
 class LocalDateTime : Parser {
-    override fun parse(now: String) = listOf(safeParse("java.time.LocalDateTime") {
+    override fun parse(now: String) = listOf(safeParse("java.time.LocalDateTime.parse(String)") {
         LocalDateTime.parse(now).toEpochSecond(ZoneOffset.UTC)
     })
 }
