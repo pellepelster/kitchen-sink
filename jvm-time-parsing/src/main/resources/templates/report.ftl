@@ -47,7 +47,7 @@
 
 <p class="lead">
     Overview of JVM (Java, Kotlin) date parsing function that are able to parse various datetime formats to the
-    expected epoch seconds ${expectedTimestamp}
+    expected epoch seconds ${expectedTimestamp} <mark>without providing the expected format</mark>.
 </p>
 
 <ul>

@@ -1,5 +1,7 @@
 package io.pelle.jvm.time
 
+import java.time.format.DateTimeFormatter
+
 const val expectedTimestamp = 1715872927L
 
 fun safeParse(name: String, parse: () -> Long): ParseResult {
