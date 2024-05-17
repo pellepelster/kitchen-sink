@@ -16,13 +16,13 @@ fun parseFormats(file: String) = Parser::class.java.getResource(file)?.readText(
 
 fun checkParsers(files: List<String>, parsers: List<Parser>) = files.flatMap { file ->
     parseFormats("/formats/${file}").map { format ->
-        FormatParseResults(format, parsers.flatMap {
+        ParseResults(format, parsers.flatMap {
             it.parse(format.time)
         })
     }
 }
 
-fun writeReport(results: List<FormatParseResults>) {
+fun writeReport(results: List<ParseResults>) {
 
     val cfg = Configuration(Configuration.VERSION_2_3_32)
     cfg.setClassForTemplateLoading(Parser::class.java, "/templates")
@@ -35,7 +35,15 @@ fun writeReport(results: List<FormatParseResults>) {
         mapOf(
             "expectedTimestamp" to expectedTimestamp.toString(),
             "results" to results,
-            "headers" to results.first().parseResults.map { it.name }),
+            "columns" to results.first().parseResults.map { first ->
+                ParseResultColumns(
+                    first.name,
+                    results.flatMap { it.parseResults }
+                        .filter { it.name == first.name && it.status == ParseResultStatus.ok }.size,
+                    results.flatMap { it.parseResults }
+                        .filter { it.name == first.name && it.status == ParseResultStatus.diff }.size
+                )
+            }),
         FileWriter(File("report.html"))
     )
 }

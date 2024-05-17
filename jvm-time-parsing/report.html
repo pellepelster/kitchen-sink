@@ -25,13 +25,13 @@
             text-align: center;
             border-radius: 6px;
             padding: 5px 0;
-
             position: absolute;
             z-index: 1;
         }
 
         .css-tooltip:hover .css-tooltiptext {
             visibility: visible;
+            width: 20rem;
         }
 
         .vertical {
@@ -47,7 +47,9 @@
 
 <p class="lead">
     Overview of JVM (Java, Kotlin) date parsing functions that are able to parse various datetime formats to the
-    expected epoch seconds 1715872927 <mark>without providing the expected format</mark>.
+    expected epoch seconds 1715872927
+    <mark>without providing the expected format</mark>
+    .
 </p>
 
 <ul>
@@ -69,7 +71,7 @@
 <table class="table table-hover">
     <thead>
     <tr>
-        <th scope="col">Timestamp</th>
+        <th scope="col">Datetime</th>
             <th scope="col"><span class="vertical"><code>org.joda.time.LocalDateTime.parse(String)</code></span></th>
             <th scope="col"><span class="vertical"><code>java.time.Instant.parse(String)</code></span></th>
             <th scope="col"><span class="vertical"><code>java.time.LocalDateTime.parse(String)</code></span></th>
@@ -68006,6 +68008,255 @@
                 </td>
         </tr>
     </tbody>
+
+    <tfoot>
+    <tr>
+        <th scope="col" class="text-end">Total <i class="text-success iconoir-check-square-solid"></i></th>
+            <th scope="col">
+                <div class="css-tooltip" style="text-decoration: underline dotted;">
+                    21
+                    <span class="css-tooltiptext">org.joda.time.LocalDateTime.parse(String)</span>
+                </div>
+            </th>
+            <th scope="col">
+                <div class="css-tooltip" style="text-decoration: underline dotted;">
+                    17
+                    <span class="css-tooltiptext">java.time.Instant.parse(String)</span>
+                </div>
+            </th>
+            <th scope="col">
+                <div class="css-tooltip" style="text-decoration: underline dotted;">
+                    0
+                    <span class="css-tooltiptext">java.time.LocalDateTime.parse(String)</span>
+                </div>
+            </th>
+            <th scope="col">
+                <div class="css-tooltip" style="text-decoration: underline dotted;">
+                    0
+                    <span class="css-tooltiptext">DateTimeFormatter.BASIC_ISO_DATE.parse(String)</span>
+                </div>
+            </th>
+            <th scope="col">
+                <div class="css-tooltip" style="text-decoration: underline dotted;">
+                    0
+                    <span class="css-tooltiptext">DateTimeFormatter.ISO_LOCAL_DATE.parse(String)</span>
+                </div>
+            </th>
+            <th scope="col">
+                <div class="css-tooltip" style="text-decoration: underline dotted;">
+                    0
+                    <span class="css-tooltiptext">DateTimeFormatter.ISO_OFFSET_DATE.parse(String)</span>
+                </div>
+            </th>
+            <th scope="col">
+                <div class="css-tooltip" style="text-decoration: underline dotted;">
+                    0
+                    <span class="css-tooltiptext">DateTimeFormatter.ISO_DATE.parse(String)</span>
+                </div>
+            </th>
+            <th scope="col">
+                <div class="css-tooltip" style="text-decoration: underline dotted;">
+                    0
+                    <span class="css-tooltiptext">DateTimeFormatter.ISO_LOCAL_TIME.parse(String)</span>
+                </div>
+            </th>
+            <th scope="col">
+                <div class="css-tooltip" style="text-decoration: underline dotted;">
+                    0
+                    <span class="css-tooltiptext">DateTimeFormatter.ISO_OFFSET_TIME.parse(String)</span>
+                </div>
+            </th>
+            <th scope="col">
+                <div class="css-tooltip" style="text-decoration: underline dotted;">
+                    0
+                    <span class="css-tooltiptext">DateTimeFormatter.ISO_TIME.parse(String)</span>
+                </div>
+            </th>
+            <th scope="col">
+                <div class="css-tooltip" style="text-decoration: underline dotted;">
+                    0
+                    <span class="css-tooltiptext">DateTimeFormatter.ISO_LOCAL_DATE_TIME.parse(String)</span>
+                </div>
+            </th>
+            <th scope="col">
+                <div class="css-tooltip" style="text-decoration: underline dotted;">
+                    23
+                    <span class="css-tooltiptext">DateTimeFormatter.ISO_OFFSET_DATE_TIME.parse(String)</span>
+                </div>
+            </th>
+            <th scope="col">
+                <div class="css-tooltip" style="text-decoration: underline dotted;">
+                    23
+                    <span class="css-tooltiptext">DateTimeFormatter.ISO_ZONED_DATE_TIME.parse(String)</span>
+                </div>
+            </th>
+            <th scope="col">
+                <div class="css-tooltip" style="text-decoration: underline dotted;">
+                    17
+                    <span class="css-tooltiptext">DateTimeFormatter.ISO_DATE_TIME.parse(String)</span>
+                </div>
+            </th>
+            <th scope="col">
+                <div class="css-tooltip" style="text-decoration: underline dotted;">
+                    0
+                    <span class="css-tooltiptext">DateTimeFormatter.ISO_ORDINAL_DATE.parse(String)</span>
+                </div>
+            </th>
+            <th scope="col">
+                <div class="css-tooltip" style="text-decoration: underline dotted;">
+                    0
+                    <span class="css-tooltiptext">DateTimeFormatter.ISO_WEEK_DATE.parse(String)</span>
+                </div>
+            </th>
+            <th scope="col">
+                <div class="css-tooltip" style="text-decoration: underline dotted;">
+                    17
+                    <span class="css-tooltiptext">DateTimeFormatter.ISO_INSTANT.parse(String)</span>
+                </div>
+            </th>
+            <th scope="col">
+                <div class="css-tooltip" style="text-decoration: underline dotted;">
+                    0
+                    <span class="css-tooltiptext">DateTimeFormatter.RFC_1123_DATE_TIME.parse(String)</span>
+                </div>
+            </th>
+            <th scope="col">
+                <div class="css-tooltip" style="text-decoration: underline dotted;">
+                    0
+                    <span class="css-tooltiptext">java.util.Date.parse(String)</span>
+                </div>
+            </th>
+            <th scope="col">
+                <div class="css-tooltip" style="text-decoration: underline dotted;">
+                    0
+                    <span class="css-tooltiptext">java.sql.Date.parse(String)</span>
+                </div>
+            </th>
+    </tr>
+    <tr>
+        <th scope="col" class="text-end">Total <i class="text-warning iconoir-check-circle-solid"></i></th>
+            <th scope="col">
+                <div class="css-tooltip" style="text-decoration: underline dotted;">
+                    37
+                    <span class="css-tooltiptext">org.joda.time.LocalDateTime.parse(String)</span>
+                </div>
+            </th>
+            <th scope="col">
+                <div class="css-tooltip" style="text-decoration: underline dotted;">
+                    0
+                    <span class="css-tooltiptext">java.time.Instant.parse(String)</span>
+                </div>
+            </th>
+            <th scope="col">
+                <div class="css-tooltip" style="text-decoration: underline dotted;">
+                    6
+                    <span class="css-tooltiptext">java.time.LocalDateTime.parse(String)</span>
+                </div>
+            </th>
+            <th scope="col">
+                <div class="css-tooltip" style="text-decoration: underline dotted;">
+                    0
+                    <span class="css-tooltiptext">DateTimeFormatter.BASIC_ISO_DATE.parse(String)</span>
+                </div>
+            </th>
+            <th scope="col">
+                <div class="css-tooltip" style="text-decoration: underline dotted;">
+                    0
+                    <span class="css-tooltiptext">DateTimeFormatter.ISO_LOCAL_DATE.parse(String)</span>
+                </div>
+            </th>
+            <th scope="col">
+                <div class="css-tooltip" style="text-decoration: underline dotted;">
+                    0
+                    <span class="css-tooltiptext">DateTimeFormatter.ISO_OFFSET_DATE.parse(String)</span>
+                </div>
+            </th>
+            <th scope="col">
+                <div class="css-tooltip" style="text-decoration: underline dotted;">
+                    0
+                    <span class="css-tooltiptext">DateTimeFormatter.ISO_DATE.parse(String)</span>
+                </div>
+            </th>
+            <th scope="col">
+                <div class="css-tooltip" style="text-decoration: underline dotted;">
+                    0
+                    <span class="css-tooltiptext">DateTimeFormatter.ISO_LOCAL_TIME.parse(String)</span>
+                </div>
+            </th>
+            <th scope="col">
+                <div class="css-tooltip" style="text-decoration: underline dotted;">
+                    0
+                    <span class="css-tooltiptext">DateTimeFormatter.ISO_OFFSET_TIME.parse(String)</span>
+                </div>
+            </th>
+            <th scope="col">
+                <div class="css-tooltip" style="text-decoration: underline dotted;">
+                    0
+                    <span class="css-tooltiptext">DateTimeFormatter.ISO_TIME.parse(String)</span>
+                </div>
+            </th>
+            <th scope="col">
+                <div class="css-tooltip" style="text-decoration: underline dotted;">
+                    0
+                    <span class="css-tooltiptext">DateTimeFormatter.ISO_LOCAL_DATE_TIME.parse(String)</span>
+                </div>
+            </th>
+            <th scope="col">
+                <div class="css-tooltip" style="text-decoration: underline dotted;">
+                    5
+                    <span class="css-tooltiptext">DateTimeFormatter.ISO_OFFSET_DATE_TIME.parse(String)</span>
+                </div>
+            </th>
+            <th scope="col">
+                <div class="css-tooltip" style="text-decoration: underline dotted;">
+                    5
+                    <span class="css-tooltiptext">DateTimeFormatter.ISO_ZONED_DATE_TIME.parse(String)</span>
+                </div>
+            </th>
+            <th scope="col">
+                <div class="css-tooltip" style="text-decoration: underline dotted;">
+                    3
+                    <span class="css-tooltiptext">DateTimeFormatter.ISO_DATE_TIME.parse(String)</span>
+                </div>
+            </th>
+            <th scope="col">
+                <div class="css-tooltip" style="text-decoration: underline dotted;">
+                    0
+                    <span class="css-tooltiptext">DateTimeFormatter.ISO_ORDINAL_DATE.parse(String)</span>
+                </div>
+            </th>
+            <th scope="col">
+                <div class="css-tooltip" style="text-decoration: underline dotted;">
+                    0
+                    <span class="css-tooltiptext">DateTimeFormatter.ISO_WEEK_DATE.parse(String)</span>
+                </div>
+            </th>
+            <th scope="col">
+                <div class="css-tooltip" style="text-decoration: underline dotted;">
+                    0
+                    <span class="css-tooltiptext">DateTimeFormatter.ISO_INSTANT.parse(String)</span>
+                </div>
+            </th>
+            <th scope="col">
+                <div class="css-tooltip" style="text-decoration: underline dotted;">
+                    0
+                    <span class="css-tooltiptext">DateTimeFormatter.RFC_1123_DATE_TIME.parse(String)</span>
+                </div>
+            </th>
+            <th scope="col">
+                <div class="css-tooltip" style="text-decoration: underline dotted;">
+                    0
+                    <span class="css-tooltiptext">java.util.Date.parse(String)</span>
+                </div>
+            </th>
+            <th scope="col">
+                <div class="css-tooltip" style="text-decoration: underline dotted;">
+                    0
+                    <span class="css-tooltiptext">java.sql.Date.parse(String)</span>
+                </div>
+            </th>
+    </tr>
+    </tfoot>
 </table>
 
 </body>

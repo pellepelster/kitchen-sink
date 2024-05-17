@@ -25,13 +25,13 @@
             text-align: center;
             border-radius: 6px;
             padding: 5px 0;
-
             position: absolute;
             z-index: 1;
         }
 
         .css-tooltip:hover .css-tooltiptext {
             visibility: visible;
+            width: 20rem;
         }
 
         .vertical {
@@ -47,7 +47,9 @@
 
 <p class="lead">
     Overview of JVM (Java, Kotlin) date parsing functions that are able to parse various datetime formats to the
-    expected epoch seconds ${expectedTimestamp} <mark>without providing the expected format</mark>.
+    expected epoch seconds ${expectedTimestamp}
+    <mark>without providing the expected format</mark>
+    .
 </p>
 
 <ul>
@@ -69,9 +71,9 @@
 <table class="table table-hover">
     <thead>
     <tr>
-        <th scope="col">Timestamp</th>
-        <#list headers as header>
-            <th scope="col"><span class="vertical"><code>${header}</code></span></th>
+        <th scope="col">Datetime</th>
+        <#list columns as column>
+            <th scope="col"><span class="vertical"><code>${column.name}</code></span></th>
         </#list>
     </tr>
     </thead>
@@ -100,6 +102,31 @@
         </tr>
     </#list>
     </tbody>
+
+    <tfoot>
+    <tr>
+        <th scope="col" class="text-end">Total <i class="text-success iconoir-check-square-solid"></i></th>
+        <#list columns as column>
+            <th scope="col">
+                <div class="css-tooltip" style="text-decoration: underline dotted;">
+                    ${column.successTotal}
+                    <span class="css-tooltiptext">${column.name}</span>
+                </div>
+            </th>
+        </#list>
+    </tr>
+    <tr>
+        <th scope="col" class="text-end">Total <i class="text-warning iconoir-check-circle-solid"></i></th>
+        <#list columns as column>
+            <th scope="col">
+                <div class="css-tooltip" style="text-decoration: underline dotted;">
+                    ${column.diffTotal}
+                    <span class="css-tooltiptext">${column.name}</span>
+                </div>
+            </th>
+        </#list>
+    </tr>
+    </tfoot>
 </table>
 
 </body>
