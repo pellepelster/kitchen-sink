@@ -1,10 +1,12 @@
 package io.pelle.jvm.time.time
 
 import io.pelle.jvm.time.Parser
-import io.pelle.jvm.time.safeParse
+import io.pelle.jvm.time.TimeFormat
+import io.pelle.jvm.time.parseAndBenchmark
 
 class JodaLocalDateTime : Parser {
-    override fun parse(now: String) = listOf(safeParse("org.joda.time.LocalDateTime.parse(String)") {
-        org.joda.time.LocalDateTime.parse(now).toDateTime().millis / 1000
-    })
+    override fun parse(timeFormat: TimeFormat) =
+        listOf(parseAndBenchmark("org.joda.time.LocalDateTime.parse(String)", timeFormat) {
+            org.joda.time.LocalDateTime.parse(timeFormat.now).toDateTime().millis / 1000
+        })
 }

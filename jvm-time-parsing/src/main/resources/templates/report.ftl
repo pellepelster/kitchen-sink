@@ -50,15 +50,21 @@
     expected epoch seconds ${expectedTimestamp}
     <mark>without providing the expected format</mark>
     .
+
+
+</p>
+<p class="lead">Benchmark for parse times
+    The background color show the distribution of parsing times, with the average parsing as number of nanoseconds. The
+    measurement is an average over ${benchmarkIterations} iterations per parse method.
 </p>
 
 <ul>
     <li>
-        <i class="text-success iconoir-check-square-solid"></i>
+        <i class="iconoir-check-circle-solid"></i>
         Datetime was successfully parsed to the expected timestamp ${expectedTimestamp}
     </li>
     <li>
-        <i class="text-warning iconoir-check-square-solid"></i>
+        <i class="text-primary iconoir-warning-triangle-solid"></i>
         Parsing did not fail, but the result differed from the expected result of ${expectedTimestamp}, this can be a
         parsing error, or caused by missing precision/timezone in the input timestamp
     </li>
@@ -67,6 +73,8 @@
         Parsing failed, see tooltip for error message
     </li>
 </ul>
+
+<h2>Datetime parse results</h2>
 
 <table class="table table-hover">
     <thead>
@@ -81,14 +89,15 @@
     <tbody>
     <#list results as result>
         <tr>
-            <th scope="row">${result.timeFormat.time}</th>
+            <th scope="row">${result.timeFormat.now}</th>
             <#list result.parseResults as parseResult>
-                <td class="<#if parseResult.status == "ok">text-success<#elseif parseResult.status == "diff">text-warning<#elseif parseResult.status == "failed">text-danger</#if>">
+                <td style="white-space: nowrap; background-color: ${parseResult.benchmarkHeatMapColor};"
+                    class="<#if parseResult.status == "failed">text-danger<#elseif parseResult.status == "diff">text-primary</#if>">
                     <#if parseResult.status == "ok">
-                        <i class="iconoir-check-square-solid"></i>
+                        <i class="iconoir-check-circle-solid"></i>
                     <#elseif parseResult.status == "diff">
                         <div class="css-tooltip">
-                            <i class="iconoir-check-circle-solid"></i>
+                            <i class="iconoir-warning-triangle-solid"></i>
                             <span class="css-tooltiptext">diff ${(parseResult.diff)!"<unknown>"}</span>
                         </div>
                     <#elseif parseResult.status == "failed">
@@ -97,6 +106,7 @@
                             <span class="css-tooltiptext">${(parseResult.error)!"<unknown>"}</span>
                         </div>
                     </#if>
+                    ${parseResult.benchmark?c}ns
                 </td>
             </#list>
         </tr>
@@ -116,7 +126,7 @@
         </#list>
     </tr>
     <tr>
-        <th scope="col" class="text-end">Total <i class="text-warning iconoir-check-circle-solid"></i></th>
+        <th scope="col" class="text-end">Total <i class="text-primary iconoir-check-circle-solid"></i></th>
         <#list columns as column>
             <th scope="col">
                 <div class="css-tooltip" style="text-decoration: underline dotted;">
@@ -128,6 +138,7 @@
     </tr>
     </tfoot>
 </table>
+
 
 </body>
 </html>

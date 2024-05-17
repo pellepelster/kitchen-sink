@@ -1,12 +1,13 @@
 package io.pelle.jvm.time.time
 
 import io.pelle.jvm.time.Parser
-import io.pelle.jvm.time.safeParse
+import io.pelle.jvm.time.TimeFormat
+import io.pelle.jvm.time.parseAndBenchmark
 import java.time.Instant
 import java.time.format.DateTimeFormatter
 
 class DateTimeFormatter : Parser {
-    override fun parse(now: String) = listOf(
+    override fun parse(timeFormat: TimeFormat) = listOf(
         "DateTimeFormatter.BASIC_ISO_DATE.parse(String)" to DateTimeFormatter.BASIC_ISO_DATE,
         "DateTimeFormatter.ISO_LOCAL_DATE.parse(String)" to DateTimeFormatter.ISO_LOCAL_DATE,
         "DateTimeFormatter.ISO_OFFSET_DATE.parse(String)" to DateTimeFormatter.ISO_OFFSET_DATE,
@@ -23,8 +24,8 @@ class DateTimeFormatter : Parser {
         "DateTimeFormatter.ISO_INSTANT.parse(String)" to DateTimeFormatter.ISO_INSTANT,
         "DateTimeFormatter.RFC_1123_DATE_TIME.parse(String)" to DateTimeFormatter.RFC_1123_DATE_TIME,
     ).map {
-        safeParse(it.first) {
-            Instant.from(it.second.parse(now)).epochSecond
+        parseAndBenchmark(it.first, timeFormat) {
+            Instant.from(it.second.parse(timeFormat.now)).epochSecond
         }
     }
 }

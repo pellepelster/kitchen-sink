@@ -6,6 +6,7 @@ import io.pelle.jvm.time.time.*
 import java.io.File
 import java.io.FileWriter
 
+
 fun parseFormats(file: String) = Parser::class.java.getResource(file)?.readText()?.lines()?.map {
     val parts = it.split("\t")
     if (parts.size != 2) {
@@ -15,9 +16,9 @@ fun parseFormats(file: String) = Parser::class.java.getResource(file)?.readText(
 } ?: throw RuntimeException("file not found: $file")
 
 fun checkParsers(files: List<String>, parsers: List<Parser>) = files.flatMap { file ->
-    parseFormats("/formats/${file}").map { format ->
-        ParseResults(format, parsers.flatMap {
-            it.parse(format.time)
+    parseFormats("/formats/${file}").map { timeFormat ->
+        ParseResults(timeFormat, parsers.flatMap {
+            it.parse(timeFormat)
         })
     }
 }
@@ -29,21 +30,52 @@ fun writeReport(results: List<ParseResults>) {
     cfg.defaultEncoding = "UTF-8"
     cfg.templateExceptionHandler = TemplateExceptionHandler.RETHROW_HANDLER
 
-    //println("parsing '${format.time} with ${result.name}: status=${result.status}, value=${result.value}, error=${result.error}, diff=${result.diff}")
+    val min = results.flatMap { it.parseResults }.map { it.benchmark }.min() - 1
+    val max = results.flatMap { it.parseResults }.map { it.benchmark }.max() + 1
 
+    println("min parse time: ${min}, max parse time: ${max}")
+
+    val totalRange = (max - min)
+    val bucketSize = (totalRange / benchmarkHeatMapColors.size).toLong()
+    var currentBucketStart = min
+
+    val heatMap = benchmarkHeatMapColors.indices.map {
+        val range = if (it == benchmarkHeatMapColors.size - 1) {
+            currentBucketStart..Long.MAX_VALUE
+        } else {
+            currentBucketStart..currentBucketStart + bucketSize
+        }
+
+        currentBucketStart += bucketSize
+        range to benchmarkHeatMapColors[it]
+    }.toMap()
+
+    heatMap.forEach { t, u ->
+        println("mapping range ${t} to color ${u}")
+    }
+
+    results.forEach {
+        it.parseResults.forEach { result ->
+            result.benchmarkHeatMapColor = heatMap.entries.firstOrNull { it.key.contains(result.benchmark) }?.value
+        }
+    }
+
+    val columns = results.first().parseResults.map { first ->
+        ParseResultColumns(
+            first.name,
+            results.flatMap { it.parseResults }
+                .filter { it.name == first.name && it.status == ParseResultStatus.ok }.size,
+            results.flatMap { it.parseResults }
+                .filter { it.name == first.name && it.status == ParseResultStatus.diff }.size
+        )
+    }
     cfg.getTemplate("report.ftl").process(
         mapOf(
             "expectedTimestamp" to expectedTimestamp.toString(),
+            "benchmarkIterations" to benchmarkIterations.toString(),
             "results" to results,
-            "columns" to results.first().parseResults.map { first ->
-                ParseResultColumns(
-                    first.name,
-                    results.flatMap { it.parseResults }
-                        .filter { it.name == first.name && it.status == ParseResultStatus.ok }.size,
-                    results.flatMap { it.parseResults }
-                        .filter { it.name == first.name && it.status == ParseResultStatus.diff }.size
-                )
-            }),
+            "columns" to columns
+        ),
         FileWriter(File("report.html"))
     )
 }
