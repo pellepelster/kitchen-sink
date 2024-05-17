@@ -46,7 +46,7 @@
 <h1>As time goes by</h1>
 
 <p class="lead">
-    Overview of JVM (Java, Kotlin) date parsing function that are able to parse various datetime formats to the
+    Overview of JVM (Java, Kotlin) date parsing functions that are able to parse various datetime formats to the
     expected epoch seconds ${expectedTimestamp} <mark>without providing the expected format</mark>.
 </p>
 
@@ -71,7 +71,7 @@
     <tr>
         <th scope="col">Timestamp</th>
         <#list headers as header>
-            <th scope="col"><span class="vertical">${header}</span></th>
+            <th scope="col"><span class="vertical"><code>${header}</code></span></th>
         </#list>
     </tr>
     </thead>
