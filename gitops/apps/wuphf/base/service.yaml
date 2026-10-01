@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: wuphf
+  labels:
+    app.kubernetes.io/name: wuphf
+spec:
+  selector:
+    app.kubernetes.io/name: wuphf
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
